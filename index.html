@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edgewater ParkPass — Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal-900:#0B4A50;
+    --teal-700:#146B72;
+    --seafoam:#8FD3CB;
+    --sand:#F3ECDC;
+    --paper:#FFFDF8;
+    --coral:#E2643B;
+    --coral-dark:#C24F2E;
+    --ink:#1C2B2A;
+    --ink-soft:#5C6B69;
+    --line:#DCD3BE;
+    --radius:14px;
+    --shadow: 0 10px 30px rgba(11,74,80,0.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--sand);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  ::selection{background:var(--seafoam);color:var(--teal-900);}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:20px 28px;
+    background:var(--teal-900);
+    color:var(--paper);
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .brand .mark{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:1.35rem;
+    letter-spacing:0.01em;
+  }
+  .brand .tag{
+    font-size:0.72rem;
+    color:var(--seafoam);
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    border:1px solid rgba(143,211,203,0.4);
+    padding:3px 8px;
+    border-radius:100px;
+  }
+  .view-toggle{
+    display:flex;
+    background:rgba(255,255,255,0.08);
+    border-radius:100px;
+    padding:4px;
+    gap:2px;
+  }
+  .view-toggle button{
+    border:none;
+    background:transparent;
+    color:rgba(255,253,248,0.7);
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:0.85rem;
+    padding:8px 18px;
+    border-radius:100px;
+    cursor:pointer;
+    transition:all .2s ease;
+  }
+  .view-toggle button.active{
+    background:var(--coral);
+    color:#fff;
+  }
+
+  /* ---------- Hero / context strip ---------- */
+  .context-strip{
+    max-width:920px;
+    margin:0 auto;
+    padding:34px 24px 6px;
+    text-align:center;
+  }
+  .context-strip h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:2rem;
+    line-height:1.15;
+    margin:0 0 10px;
+    color:var(--teal-900);
+  }
+  .context-strip p{
+    color:var(--ink-soft);
+    font-size:1rem;
+    line-height:1.55;
+    max-width:640px;
+    margin:0 auto;
+  }
+  .stat-row{
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    flex-wrap:wrap;
+    margin:22px auto 0;
+    max-width:760px;
+  }
+  .stat-pill{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:100px;
+    padding:9px 16px;
+    font-size:0.82rem;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:7px;
+  }
+  .stat-pill strong{color:var(--teal-900); font-weight:700;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--coral);}
+
+  main{padding:28px 20px 70px;}
+
+  /* ================= GUEST VIEW ================= */
+  #guest-view{display:block;}
+  .wizard{
+    max-width:520px;
+    margin:30px auto 0;
+  }
+  .steps{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:22px;
+  }
+  .step-dot{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:0.75rem;
+    color:var(--ink-soft);
+  }
+  .step-dot .circ{
+    width:22px;height:22px;border-radius:50%;
+    border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.68rem;
+    background:var(--paper);
+    transition:all .2s ease;
+  }
+  .step-dot.active .circ{border-color:var(--coral);color:var(--coral); font-weight:700;}
+  .step-dot.done .circ{background:var(--teal-700);border-color:var(--teal-700);color:#fff;}
+  .step-line{width:26px;height:2px;background:var(--line);align-self:center;}
+
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:28px 26px;
+  }
+  .card h2{
+    font-family:'Fraunces',serif;
+    font-size:1.3rem;
+    margin:0 0 4px;
+    color:var(--teal-900);
+  }
+  .card .sub{
+    color:var(--ink-soft);
+    font-size:0.88rem;
+    margin:0 0 20px;
+  }
+  label{
+    display:block;
+    font-size:0.78rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin:14px 0 6px;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+  }
+  label:first-of-type{margin-top:0;}
+  input[type=text], input[type=date], select{
+    width:100%;
+    padding:11px 13px;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    font-family:'Inter',sans-serif;
+    font-size:0.95rem;
+    color:var(--ink);
+    background:#fff;
+    outline:none;
+    transition:border-color .15s ease;
+  }
+  input:focus, select:focus{border-color:var(--teal-700);}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    border:none;
+    border-radius:9px;
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:0.92rem;
+    padding:13px 20px;
+    cursor:pointer;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--coral); color:#fff; width:100%;}
+  .btn-primary:hover{background:var(--coral-dark);}
+  .btn-ghost{background:transparent; color:var(--teal-700); border:1.5px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--teal-700);}
+  .btn-row{display:flex; gap:10px; margin-top:22px;}
+  .btn-row .btn-ghost{flex:0 0 auto; padding:13px 18px;}
+  .btn-row .btn-primary{flex:1;}
+
+  .option-card{
+    border:1.5px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .option-card:hover{border-color:var(--seafoam);}
+  .option-card.selected{border-color:var(--coral); background:rgba(226,100,59,0.05);}
+  .option-card .ot{font-weight:700; font-size:0.95rem;}
+  .option-card .os{font-size:0.78rem; color:var(--ink-soft); margin-top:2px;}
+  .option-card .price{font-family:'Fraunces',serif; font-weight:600; font-size:1.15rem; color:var(--teal-900);}
+
+  .summary-line{
+    display:flex; justify-content:space-between;
+    padding:9px 0;
+    font-size:0.9rem;
+    border-bottom:1px dashed var(--line);
+  }
+  .summary-line.total{
+    border-bottom:none;
+    font-weight:700;
+    font-size:1.05rem;
+    color:var(--teal-900);
+    padding-top:12px;
+  }
+
+  .card-input-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+
+  /* Pass (signature element) */
+  .pass-wrap{display:flex; justify-content:center; margin:6px 0 18px;}
+  .pass{
+    position:relative;
+    width:100%;
+    max-width:420px;
+    background:linear-gradient(135deg, var(--teal-900), var(--teal-700));
+    border-radius:16px;
+    color:var(--paper);
+    padding:22px 22px 0;
+    overflow:hidden;
+  }
+  .pass::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image: radial-gradient(circle at 15% 30%, rgba(255,255,255,0.08) 0, transparent 40%),
+                       radial-gradient(circle at 85% 70%, rgba(255,255,255,0.06) 0, transparent 40%);
+    pointer-events:none;
+  }
+  .pass-top{display:flex; justify-content:space-between; align-items:flex-start; position:relative;}
+  .pass-brand{font-family:'Fraunces',serif; font-weight:600; font-size:1.05rem;}
+  .pass-badge{
+    font-size:0.65rem; text-transform:uppercase; letter-spacing:0.08em;
+    background:var(--coral); padding:4px 9px; border-radius:100px; font-weight:700;
+  }
+  .pass-title{
+    font-family:'Fraunces',serif;
+    font-size:1.5rem;
+    margin:16px 0 2px;
+  }
+  .pass-sub{font-size:0.8rem; color:var(--seafoam);}
+  .pass-grid{
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin:18px 0 20px;
+    position:relative;
+  }
+  .pass-field .pf-label{font-size:0.62rem; text-transform:uppercase; letter-spacing:0.07em; color:rgba(255,253,248,0.6);}
+  .pass-field .pf-value{font-family:'IBM Plex Mono',monospace; font-size:0.92rem; margin-top:3px;}
+
+  .perforation{
+    position:relative;
+    border-top:2px dashed rgba(255,253,248,0.35);
+    margin-top:4px;
+  }
+  .perforation::before, .perforation::after{
+    content:""; position:absolute; top:-9px; width:18px; height:18px;
+    border-radius:50%; background:var(--sand);
+  }
+  .perforation::before{left:-31px;}
+  .perforation::after{right:-31px;}
+
+  .pass-bottom{
+    display:flex; align-items:center; gap:16px;
+    padding:16px 0 20px;
+    position:relative;
+  }
+  .qr{
+    width:84px; height:84px;
+    background:#fff;
+    border-radius:8px;
+    padding:6px;
+    flex:0 0 auto;
+  }
+  .qr canvas{width:100%; height:100%; display:block; border-radius:3px;}
+  .pass-bottom .pb-code{font-family:'IBM Plex Mono',monospace; font-size:0.72rem; color:rgba(255,253,248,0.75); line-height:1.5;}
+
+  .pass-actions{display:flex; gap:10px; max-width:420px; margin:0 auto 8px;}
+  .pass-actions .btn{flex:1; font-size:0.82rem; padding:11px 10px;}
+
+  .fine-print{
+    text-align:center;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    margin-top:16px;
+    line-height:1.5;
+  }
+
+  /* ================= STAFF VIEW ================= */
+  #staff-view{display:none;}
+  .staff-wrap{max-width:1020px; margin:26px auto 0;}
+  .stat-cards{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:22px;
+  }
+  .stat-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:16px 18px;
+  }
+  .stat-card .sc-num{font-family:'Fraunces',serif; font-size:1.7rem; color:var(--teal-900); font-weight:600;}
+  .stat-card .sc-label{font-size:0.75rem; color:var(--ink-soft); margin-top:2px;}
+
+  .panel{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .panel-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 22px;
+    border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .panel-head h3{
+    font-family:'Fraunces',serif;
+    margin:0;
+    color:var(--teal-900);
+    font-size:1.15rem;
+  }
+  .rule-toggle{
+    display:flex; align-items:center; gap:10px;
+    font-size:0.8rem; color:var(--ink-soft);
+    background:var(--sand);
+    padding:6px 8px 6px 14px;
+    border-radius:100px;
+  }
+  .switch{
+    position:relative; width:38px; height:20px;
+    background:var(--line); border-radius:100px;
+    cursor:pointer; transition:background .2s ease;
+  }
+  .switch.on{background:var(--teal-700);}
+  .switch .knob{
+    position:absolute; top:2px; left:2px;
+    width:16px; height:16px; border-radius:50%;
+    background:#fff; transition:left .2s ease;
+    box-shadow:0 1px 3px rgba(0,0,0,0.25);
+  }
+  .switch.on .knob{left:20px;}
+
+  table{width:100%; border-collapse:collapse;}
+  th{
+    text-align:left;
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--ink-soft);
+    padding:10px 22px;
+    border-bottom:1px solid var(--line);
+    background:rgba(243,236,220,0.5);
+  }
+  td{
+    padding:13px 22px;
+    font-size:0.88rem;
+    border-bottom:1px solid var(--line);
+  }
+  tr:last-child td{border-bottom:none;}
+  .badge{
+    font-size:0.7rem; font-weight:700; padding:4px 10px; border-radius:100px;
+    text-transform:uppercase; letter-spacing:0.03em;
+  }
+  .badge.paid{background:rgba(20,107,114,0.12); color:var(--teal-700);}
+  .badge.pending{background:rgba(226,100,59,0.12); color:var(--coral-dark);}
+  .mini-btn{
+    border:1.5px solid var(--line);
+    background:#fff;
+    border-radius:7px;
+    padding:6px 12px;
+    font-size:0.78rem;
+    font-weight:600;
+    color:var(--teal-700);
+    cursor:pointer;
+  }
+  .mini-btn:hover{border-color:var(--teal-700);}
+  .panel-foot{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 22px;
+    background:rgba(243,236,220,0.5);
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .panel-foot .pf-note{font-size:0.78rem; color:var(--ink-soft);}
+
+  @media (max-width: 640px){
+    .stat-cards{grid-template-columns:1fr 1fr;}
+    .card-input-row, .row2{grid-template-columns:1fr;}
+    table{font-size:0.8rem;}
+    th, td{padding:10px 12px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="mark">Edgewater ParkPass</span>
+    <span class="tag">Concept</span>
+  </div>
+  <div class="view-toggle">
+    <button id="btn-guest" class="active" onclick="setView('guest')">Guest</button>
+    <button id="btn-staff" onclick="setView('staff')">Owner Services</button>
+  </div>
+</div>
+
+<div class="context-strip">
+  <h1>Skip the office-hours scramble for a parking pass</h1>
+  <p>Most arrivals book through Airbnb, not the front desk — so the first thing they need on property is a pass, not a reason to stand in line. A two-minute checkout replaces the trip to Owner Services.</p>
+  <div class="stat-row">
+    <div class="stat-pill"><span class="dot"></span>Owner Services hours: <strong>9am–4pm</strong></div>
+    <div class="stat-pill"><span class="dot"></span>Overlaps beach &amp; pool time</div>
+    <div class="stat-pill"><span class="dot"></span>Today: one pass request per stay day</div>
+  </div>
+</div>
+
+<main>
+  <!-- ============ GUEST VIEW ============ -->
+  <section id="guest-view">
+    <div class="wizard">
+      <div class="steps" id="step-dots">
+        <div class="step-dot active" data-s="1"><div class="circ">1</div><span>Stay</span></div>
+        <div class="step-line"></div>
+        <div class="step-dot" data-s="2"><div class="circ">2</div><span>Pass</span></div>
+        <div class="step-line"></div>
+        <div class="step-dot" data-s="3"><div class="circ">3</div><span>Pay</span></div>
+        <div class="step-line"></div>
+        <div class="step-dot" data-s="4"><div class="circ">4</div><span>Ready</span></div>
+      </div>
+
+      <!-- STEP 1 -->
+      <div class="card step-panel" id="panel-1">
+        <h2>Find your reservation</h2>
+        <p class="sub">Booked through Airbnb, Vrbo, or direct — any of it works here.</p>
+
+        <label>Last name on reservation</label>
+        <input type="text" id="g-name" placeholder="e.g. Brooks" value="Brooks">
+
+        <label>Unit / Tower</label>
+        <select id="g-unit">
+          <option>Tower I — Unit 1204</option>
+          <option>Tower II — Unit 806</option>
+          <option>Tower III — Unit 1512</option>
+          <option>Villas — Bldg 22</option>
+        </select>
+
+        <div class="row2">
+          <div>
+            <label>Arrival</label>
+            <input type="date" id="g-arrive" value="2026-08-14">
+          </div>
+          <div>
+            <label>Departure</label>
+            <input type="date" id="g-depart" value="2026-08-17">
+          </div>
+        </div>
+
+        <label>License plate <span style="text-transform:none;font-weight:400;color:var(--ink-soft);">(optional, speeds up gate check)</span></label>
+        <input type="text" id="g-plate" placeholder="e.g. FL · ABC 1234">
+
+        <div class="btn-row" style="justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="goStep(2)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="card step-panel" id="panel-2" style="display:none;">
+        <h2>Choose your pass</h2>
+        <p class="sub">3 nights selected · <span id="p2-dates">Aug 14 – Aug 17</span></p>
+
+        <div class="option-card selected" data-price="75" data-label="Full-stay pass · 3 nights" onclick="selectOption(this)">
+          <div>
+            <div class="ot">Full-stay pass</div>
+            <div class="os">One pass, covers your whole visit</div>
+          </div>
+          <div class="price">$75</div>
+        </div>
+
+        <div class="option-card" data-price="25" data-label="Single-day pass" onclick="selectOption(this)">
+          <div>
+            <div class="ot">Single-day pass</div>
+            <div class="os">$25/night — buy one night at a time</div>
+          </div>
+          <div class="price">$25</div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+          <button class="btn btn-primary" onclick="goStep(3)">Continue →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="card step-panel" id="panel-3" style="display:none;">
+        <h2>Payment</h2>
+        <p class="sub" id="p3-selected">Full-stay pass · 3 nights</p>
+
+        <label>Card number</label>
+        <input type="text" placeholder="4242 4242 4242 4242" value="4242 4242 4242 4242">
+
+        <div class="card-input-row">
+          <div>
+            <label>Expiry</label>
+            <input type="text" placeholder="MM/YY" value="09/28">
+          </div>
+          <div>
+            <label>CVC</label>
+            <input type="text" placeholder="123" value="123">
+          </div>
+        </div>
+
+        <div style="margin-top:18px;">
+          <div class="summary-line"><span id="p3-line-label">Full-stay pass</span><span id="p3-line-price">$75.00</span></div>
+          <div class="summary-line"><span>Service fee</span><span>$0.00</span></div>
+          <div class="summary-line total"><span>Total</span><span id="p3-total">$75.00</span></div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+          <button class="btn btn-primary" onclick="goStep(4)">Pay &amp; get pass →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step-panel" id="panel-4" style="display:none;">
+        <div class="pass-wrap">
+          <div class="pass">
+            <div class="pass-top">
+              <div class="pass-brand">Edgewater</div>
+              <div class="pass-badge">Valid</div>
+            </div>
+            <div class="pass-title">Parking Pass</div>
+            <div class="pass-sub" id="pass-sub-label">Full-stay · 3 nights</div>
+
+            <div class="pass-grid">
+              <div class="pass-field"><div class="pf-label">Guest</div><div class="pf-value" id="pass-name">Brooks</div></div>
+              <div class="pass-field"><div class="pf-label">Unit</div><div class="pf-value" id="pass-unit">Tower I · 1204</div></div>
+              <div class="pass-field"><div class="pf-label">Valid</div><div class="pf-value" id="pass-dates">Aug 14–17</div></div>
+              <div class="pass-field"><div class="pf-label">Plate</div><div class="pf-value" id="pass-plate">—</div></div>
+            </div>
+
+            <div class="perforation"></div>
+            <div class="pass-bottom">
+              <div class="qr"><canvas id="qr-canvas" width="120" height="120"></canvas></div>
+              <div class="pb-code">Pass ID<br><span id="pass-id">EW-8841-XQ2</span><br>Show at gate or scan on arrival</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pass-actions">
+          <button class="btn btn-ghost" onclick="alert('Prototype only — would email the pass as PDF.')">Email pass</button>
+          <button class="btn btn-ghost" onclick="alert('Prototype only — would open a print-ready view.')">Print</button>
+          <button class="btn btn-primary" onclick="alert('Prototype only — would add to Apple/Google Wallet.')">Add to Wallet</button>
+        </div>
+
+        <p class="fine-print">This pass is also queued automatically in the Owner Services dashboard, so security or front-desk staff can hand out a printed copy without the guest needing to visit the office.</p>
+
+        <div class="btn-row" style="max-width:420px;margin:8px auto 0;">
+          <button class="btn btn-ghost" style="width:100%;" onclick="goStep(1)">Start a new pass</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ STAFF VIEW ============ -->
+  <section id="staff-view">
+    <div class="staff-wrap">
+      <div class="stat-cards">
+        <div class="stat-card"><div class="sc-num">18</div><div class="sc-label">Passes sold today</div></div>
+        <div class="stat-card"><div class="sc-num">4</div><div class="sc-label">Pending arrivals</div></div>
+        <div class="stat-card"><div class="sc-num">6</div><div class="sc-label">In print queue</div></div>
+        <div class="stat-card"><div class="sc-num">$1,240</div><div class="sc-label">Parking revenue, MTD</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Today's arrivals</h3>
+          <div class="rule-toggle">
+            <span>Pricing rule:</span>
+            <span id="rule-label">Flat per stay</span>
+            <div class="switch" id="rule-switch" onclick="toggleRule()"><div class="knob"></div></div>
+            <span>Per night</span>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Guest</th><th>Unit</th><th>Dates</th><th>Plate</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="staff-table">
+            <tr><td>Brooks, N.</td><td>Tower I · 1204</td><td>Aug 14–17</td><td>FL · ABC 1234</td><td><span class="badge paid">Paid</span></td><td><button class="mini-btn" onclick="alert('Prototype only — sends to gate printer.')">Print</button></td></tr>
+            <tr><td>Alvarez, M.</td><td>Tower II · 806</td><td>Aug 14–19</td><td>—</td><td><span class="badge pending">Pending</span></td><td><button class="mini-btn" onclick="alert('Prototype only — sends reminder text.')">Remind</button></td></tr>
+            <tr><td>Chen, R.</td><td>Villas · Bldg 22</td><td>Aug 14–16</td><td>GA · 9JK221</td><td><span class="badge paid">Paid</span></td><td><button class="mini-btn" onclick="alert('Prototype only — sends to gate printer.')">Print</button></td></tr>
+            <tr><td>Osei, T.</td><td>Tower III · 1512</td><td>Aug 14–21</td><td>—</td><td><span class="badge pending">Pending</span></td><td><button class="mini-btn" onclick="alert('Prototype only — sends reminder text.')">Remind</button></td></tr>
+            <tr><td>Nguyen, K.</td><td>Tower I · 908</td><td>Aug 14–18</td><td>TN · 445PLM</td><td><span class="badge paid">Paid</span></td><td><button class="mini-btn" onclick="alert('Prototype only — sends to gate printer.')">Print</button></td></tr>
+          </tbody>
+        </table>
+        <div class="panel-foot">
+          <div class="pf-note">Paid passes queue here automatically — no guest has to walk over during office hours.</div>
+          <button class="btn btn-primary" style="width:auto;padding:10px 18px;" onclick="alert('Prototype only — would batch-print all paid passes for today.')">Batch print all paid (3)</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+function setView(v){
+  document.getElementById('guest-view').style.display = v==='guest' ? 'block' : 'none';
+  document.getElementById('staff-view').style.display = v==='staff' ? 'block' : 'none';
+  document.getElementById('btn-guest').classList.toggle('active', v==='guest');
+  document.getElementById('btn-staff').classList.toggle('active', v==='staff');
+}
+
+function goStep(n){
+  for(let i=1;i<=4;i++){
+    document.getElementById('panel-'+i).style.display = (i===n) ? 'block' : 'none';
+  }
+  document.querySelectorAll('.step-dot').forEach(d=>{
+    const s = parseInt(d.dataset.s);
+    d.classList.toggle('active', s===n);
+    d.classList.toggle('done', s<n);
+  });
+  if(n===4){ fillPass(); drawQR(); }
+}
+
+let selected = {price:75, label:'Full-stay pass · 3 nights', line:'Full-stay pass'};
+
+function selectOption(el){
+  document.querySelectorAll('.option-card').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  selected.price = parseInt(el.dataset.price);
+  selected.label = el.dataset.label;
+  selected.line = el.querySelector('.ot').textContent;
+}
+
+function goStep3Prep(){
+  document.getElementById('p3-selected').textContent = selected.label;
+  document.getElementById('p3-line-label').textContent = selected.line;
+  document.getElementById('p3-line-price').textContent = '$'+selected.price.toFixed(2);
+  document.getElementById('p3-total').textContent = '$'+selected.price.toFixed(2);
+}
+
+const origGoStep = goStep;
+goStep = function(n){
+  if(n===3) goStep3Prep();
+  origGoStep(n);
+}
+
+function fillPass(){
+  document.getElementById('pass-name').textContent = document.getElementById('g-name').value || 'Guest';
+  document.getElementById('pass-unit').textContent = document.getElementById('g-unit').value.replace(' — ', ' · ');
+  const arrive = document.getElementById('g-arrive').value;
+  const depart = document.getElementById('g-depart').value;
+  document.getElementById('pass-dates').textContent = formatRange(arrive, depart);
+  document.getElementById('pass-plate').textContent = document.getElementById('g-plate').value || '—';
+  document.getElementById('pass-sub-label').textContent = selected.label;
+}
+
+function formatRange(a,d){
+  const opt = {month:'short', day:'numeric'};
+  try{
+    const da = new Date(a+'T12:00:00'), dd = new Date(d+'T12:00:00');
+    return da.toLocaleDateString('en-US',opt) + '–' + dd.toLocaleDateString('en-US',{day:'numeric'});
+  }catch(e){ return a+' – '+d; }
+}
+
+function drawQR(){
+  const c = document.getElementById('qr-canvas');
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0,0,120,120);
+  ctx.fillStyle = '#0B4A50';
+  const cells = 12;
+  const size = 120/cells;
+  // deterministic pseudo-pattern seeded by pass id
+  const seedStr = 'EW-8841-XQ2' + document.getElementById('g-name').value;
+  let seed = 0;
+  for(let i=0;i<seedStr.length;i++) seed += seedStr.charCodeAt(i)*(i+1);
+  function rand(){ seed = (seed*9301+49297)%233280; return seed/233280; }
+  for(let x=0;x<cells;x++){
+    for(let y=0;y<cells;y++){
+      if(rand() > 0.52) ctx.fillRect(x*size, y*size, size-1, size-1);
+    }
+  }
+  // finder squares
+  ctx.fillStyle = '#0B4A50';
+  [[0,0],[cells-3,0],[0,cells-3]].forEach(([fx,fy])=>{
+    ctx.fillRect(fx*size, fy*size, size*3, size*3);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(fx*size+size*0.6, fy*size+size*0.6, size*1.8, size*1.8);
+    ctx.fillStyle = '#0B4A50';
+  });
+}
+
+function toggleRule(){
+  const sw = document.getElementById('rule-switch');
+  const on = sw.classList.toggle('on');
+  document.getElementById('rule-label').style.opacity = on ? 0.4 : 1;
+  document.querySelector('.rule-toggle span:last-child').style.opacity = on ? 1 : 0.4;
+}
+</script>
+
+<!-- Vercel Web Analytics — auto-tracks page views once deployed on Vercel, no config needed -->
+<script defer src="/_vercel/insights/script.js"></script>
+
+</body>
+</html>
